@@ -13,5 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ApiRef from '../ApiRef';
 
-export { default } from './ErrorDisplay';
+export type AlertMessage = {
+  message: string;
+  severity?: 'success' | 'info' | 'warning' | 'error';
+};
+
+/**
+ * The alert API is used to report alerts to the app, and display them to the user.
+ */
+
+export type AlertApi = {
+  /**
+   * Post an alert for handling by the application.
+   */
+  post(alert: AlertMessage);
+};
+
+export const alertApiRef = new ApiRef<AlertApi>({
+  id: 'core.alert',
+  description: 'Used to report alerts and forward them to the app',
+});
