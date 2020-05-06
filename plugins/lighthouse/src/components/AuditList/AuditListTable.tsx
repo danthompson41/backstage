@@ -13,143 +13,111 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { FC, useMemo } from 'react';
+import React, { FC, useState } from 'react';
+import { Table, TableColumn, TrendLine, useApi } from '@backstage/core';
+import { Website, lighthouseApiRef } from '../../api';
+import { useInterval } from 'react-use';
 import {
-  Link,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import { TrendLine } from '@backstage/core';
-
-import {
-  Audit,
-  AuditCompleted,
-  LighthouseCategoryId,
-  Website,
-} from '../../api';
-import { formatTime } from '../../utils';
+  formatTime,
+  CATEGORIES,
+  CATEGORY_LABELS,
+  buildSparklinesDataForItem,
+} from '../../utils';
+import { Link } from '@material-ui/core';
 import AuditStatusIcon from '../AuditStatusIcon';
 
-export const CATEGORIES: LighthouseCategoryId[] = [
-  'accessibility',
-  'performance',
-  'seo',
-  'best-practices',
+const columns: TableColumn[] = [
+  {
+    title: 'Website URL',
+    field: 'websiteUrl',
+  },
+  ...CATEGORIES.map((category) => ({
+    title: CATEGORY_LABELS[category],
+    field: category,
+  })),
+  {
+    title: 'Last Report',
+    field: 'lastReport',
+    cellStyle: {
+      whiteSpace: 'nowrap',
+    },
+  },
+  {
+    title: 'Last Audit Triggered',
+    field: 'lastAuditTriggered',
+    cellStyle: {
+      minWidth: 120,
+    },
+  },
 ];
 
-export const CATEGORY_LABELS: Record<LighthouseCategoryId, string> = {
-  accessibility: 'Accessibility',
-  performance: 'Performance',
-  seo: 'SEO',
-  'best-practices': 'Best Practices',
-  pwa: 'Progressive Web App',
-};
-
-const useStyles = makeStyles(theme => ({
-  table: {
-    minWidth: 650,
-  },
-  status: {
-    textTransform: 'capitalize',
-  },
-  link: {
-    paddingTop: theme.spacing(2),
-    paddingBottom: theme.spacing(2),
-    display: 'inline-block',
-  },
-  statusCell: { whiteSpace: 'nowrap' },
-  sparklinesCell: { minWidth: 120 },
-}));
-
-type SparklinesDataByCategory = Record<LighthouseCategoryId, number[]>;
-function buildSparklinesDataForItem(item: Website): SparklinesDataByCategory {
-  return item.audits
-    .filter(
-      (audit: Audit): audit is AuditCompleted => audit.status === 'COMPLETED',
-    )
-    .reduce((scores, audit) => {
-      Object.values(audit.categories).forEach(category => {
-        scores[category.id] = scores[category.id] || [];
-        scores[category.id].unshift(category.score);
-      });
-
-      // edge case: if only one audit exists, force a "flat" sparkline
-      Object.values(scores).forEach(arr => {
-        if (arr.length === 1) arr.push(arr[0]);
-      });
-
-      return scores;
-    }, {} as SparklinesDataByCategory);
-}
-
 export const AuditListTable: FC<{ items: Website[] }> = ({ items }) => {
-  const classes = useStyles();
-  const categorySparklines: Record<string, SparklinesDataByCategory> = useMemo(
-    () =>
-      items.reduce(
-        (res, item) => ({
-          ...res,
-          [item.url]: buildSparklinesDataForItem(item),
-        }),
-        {},
-      ),
-    [items],
+  const [websiteState, setWebsiteState] = useState(items);
+  const lighthouseApi = useApi(lighthouseApiRef);
+
+  const runRefresh = (websites: Website[]) => {
+    websites.forEach(async (website) => {
+      const response = await lighthouseApi.getWebsiteForAuditId(
+        website.lastAudit.id,
+      );
+      const auditStatus = response.lastAudit.status;
+      if (auditStatus === 'COMPLETED' || auditStatus === 'FAILED') {
+        const newWebsiteData = websiteState.slice(0);
+        newWebsiteData[
+          newWebsiteData.findIndex((w) => w.url === response.url)
+        ] = response;
+        setWebsiteState(newWebsiteData);
+      }
+    });
+  };
+
+  const runningWebsiteAudits = websiteState
+    ? websiteState.filter((website) => website.lastAudit.status === 'RUNNING')
+    : [];
+
+  useInterval(
+    () => runRefresh(runningWebsiteAudits),
+    runningWebsiteAudits.length > 0 ? 5000 : null,
   );
 
+  const data = websiteState.map((website) => {
+    const trendlineData = buildSparklinesDataForItem(website);
+    const trendlines: any = {};
+    CATEGORIES.forEach((category) => {
+      trendlines[category] = (
+        <TrendLine
+          title={`trendline for ${CATEGORY_LABELS[category]} category of ${website.url}`}
+          data={trendlineData[category] || []}
+        />
+      );
+    });
+
+    return {
+      websiteUrl: (
+        <Link href={`/lighthouse/audit/${website.lastAudit.id}`}>
+          {website.url}
+        </Link>
+      ),
+      ...trendlines,
+      lastReport: (
+        <>
+          <AuditStatusIcon audit={website.lastAudit} />{' '}
+          <span>{website.lastAudit.status.toUpperCase()}</span>
+        </>
+      ),
+      lastAuditTriggered: formatTime(website.lastAudit.timeCreated),
+    };
+  });
+
   return (
-    <TableContainer>
-      <Table className={classes.table} size="small" aria-label="a dense table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Website URL</TableCell>
-            {CATEGORIES.map(category => (
-              <TableCell key={`${category}-label`}>
-                {CATEGORY_LABELS[category]}
-              </TableCell>
-            ))}
-            <TableCell>Last Report</TableCell>
-            <TableCell>Last Audit Triggered</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {items.map(website => (
-            <TableRow key={website.url}>
-              <TableCell>
-                <Link
-                  className={classes.link}
-                  href={`/lighthouse/audit/${website.lastAudit.id}`}
-                >
-                  {website.url}
-                </Link>
-              </TableCell>
-              {CATEGORIES.map(category => (
-                <TableCell
-                  key={`${website.url}|${category}`}
-                  className={classes.sparklinesCell}
-                >
-                  <TrendLine
-                    title={`trendline for ${CATEGORY_LABELS[category]} category of ${website.url}`}
-                    data={categorySparklines[website.url][category] || []}
-                  />
-                </TableCell>
-              ))}
-              <TableCell className={classes.statusCell}>
-                <AuditStatusIcon audit={website.lastAudit} />{' '}
-                <span className={classes.status}>
-                  {website.lastAudit.status.toLowerCase()}
-                </span>
-              </TableCell>
-              <TableCell>{formatTime(website.lastAudit.timeCreated)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Table
+      options={{
+        paging: false,
+        toolbar: false,
+      }}
+      columns={columns}
+      data={data}
+    />
   );
 };
 

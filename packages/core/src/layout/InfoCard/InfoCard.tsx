@@ -24,21 +24,21 @@ import {
   withStyles,
   makeStyles,
 } from '@material-ui/core';
-import ErrorBoundary from 'layout/ErrorBoundary/ErrorBoundary';
+import ErrorBoundary from '../ErrorBoundary';
 import BottomLink, { Props as BottomLinkProps } from '../BottomLink';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   header: {
     padding: theme.spacing(2, 2, 2, 2.5),
   },
 }));
 
-const BoldHeader = withStyles(theme => ({
+const BoldHeader = withStyles((theme) => ({
   title: { fontWeight: 700 },
   subheader: { paddingTop: theme.spacing(1) },
 }))(CardHeader);
 
-const CardActionsTopRight = withStyles(theme => ({
+const CardActionsTopRight = withStyles((theme) => ({
   root: {
     display: 'inline-block',
     padding: theme.spacing(8, 8, 0, 0),
@@ -51,9 +51,6 @@ const VARIANT_STYLES = {
     flex: {
       display: 'flex',
       flexDirection: 'column',
-    },
-    widget: {
-      height: 430,
     },
     fullHeight: {
       height: '100%',
@@ -79,11 +76,6 @@ const VARIANT_STYLES = {
     },
   },
   cardContent: {
-    widget: {
-      overflowY: 'auto',
-      height: 332,
-      width: '100%',
-    },
     fullHeight: {
       height: 'calc(100% - 50px)',
     },
@@ -162,11 +154,16 @@ const InfoCard: FC<Props> = ({
 
   if (variant) {
     const variants = variant.split(/[\s]+/g);
-    variants.forEach(name => {
-      calculatedStyle = { ...calculatedStyle, ...VARIANT_STYLES.card[name] };
+    variants.forEach((name) => {
+      calculatedStyle = {
+        ...calculatedStyle,
+        ...VARIANT_STYLES.card[name as keyof typeof VARIANT_STYLES['card']],
+      };
       calculatedCardStyle = {
         ...calculatedCardStyle,
-        ...VARIANT_STYLES.cardContent[name],
+        ...VARIANT_STYLES.cardContent[
+          name as keyof typeof VARIANT_STYLES['cardContent']
+        ],
       };
     });
   }

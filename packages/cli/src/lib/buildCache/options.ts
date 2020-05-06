@@ -16,7 +16,7 @@
 
 import { resolve as resolvePath } from 'path';
 import { Command } from 'commander';
-import { paths } from 'lib/paths';
+import { paths } from '../paths';
 
 const DEFAULT_CACHE_DIR = '<repoRoot>/node_modules/.cache/backstage-builds';
 const DEFAULT_MAX_ENTRIES = 10;
@@ -29,9 +29,7 @@ export type Options = {
 };
 
 function transformPath(path: string): string {
-  return resolvePath(
-    path.replace(/<repoRoot>/g, paths.targetRoot).replace(/'/g, ''),
-  );
+  return resolvePath(path.replace(/<repoRoot>/g, paths.targetRoot));
 }
 
 export async function parseOptions(cmd: Command): Promise<Options> {

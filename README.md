@@ -24,6 +24,8 @@ This blog post provides more examples of how Backstage is used inside Spotify:
 
 https://labs.spotify.com/2020/03/17/what-the-heck-is-backstage-anyway/
 
+https://backstage.io/demos
+
 ## Project roadmap
 
 We created Backstage about 4 years ago. While our internal version of Backstage has had the benefit of time to mature and evolve, the first iteration of our open source version is still nascent. We are envisioning three phases of the project and we have already begun work on various aspects of these phases:
@@ -44,7 +46,7 @@ The Backstage platform consists of a number of different components:
 
 - **app** - Main web application that users interact with. It's built up by a number of different _Plugins_. This repo contains an example implementation of an app (located in `packages/example-app`) and you can easily get started with your own app by [creating one](docs/create-an-app.md).
 - [**plugins**](https://github.com/spotify/backstage/tree/master/plugins) - Each plugin is treated as a self-contained web app and can include almost any type of content. Plugins all use a common set of platform API's and reusable UI components. Plugins can fetch data either from the _backend_ or through any RESTful API exposed through the _proxy_.
-- **backend** \* - GraphQL aggregation service that holds the model of your software ecosystem, including organisational information and what team owns what software. The backend also has a Plugin model for extending its graph.
+- [**backend**](https://github.com/spotify/backstage/tree/master/packages/backend) - GraphQL aggregation service that holds the model of your software ecosystem, including organisational information and what team owns what software. The backend also has a Plugin model for extending its graph.
 - **proxy** \* - Terminates HTTPS and exposes any RESTful API to Plugins.
 - **identity** \* - A backend service that holds your organisation's metadata.
 

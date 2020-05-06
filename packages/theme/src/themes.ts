@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { createTheme } from 'baseTheme';
+import { createTheme } from './baseTheme';
 import { blue, yellow } from '@material-ui/core/colors';
 
 export const lightTheme = createTheme({
@@ -28,7 +28,7 @@ export const lightTheme = createTheme({
     error: '#CA001B',
     running: '#BEBEBE',
     pending: '#5BC0DE',
-    background: '#FEFEFE',
+    background: '#F8F8F8',
   },
   bursts: {
     fontColor: '#FEFEFE',
@@ -68,7 +68,7 @@ export const darkTheme = createTheme({
     error: '#CA001B',
     running: '#BEBEBE',
     pending: '#5BC0DE',
-    background: '#FEFEFE',
+    background: '#282828',
   },
   bursts: {
     fontColor: '#FEFEFE',

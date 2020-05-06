@@ -17,25 +17,39 @@
 import {
   ApiHolder,
   ApiRegistry,
+  alertApiRef,
   errorApiRef,
+  AlertApiForwarder,
+  ErrorApiForwarder,
   featureFlagsApiRef,
   FeatureFlags,
 } from '@backstage/core';
+
 import {
   lighthouseApiRef,
   LighthouseRestApi,
 } from '@backstage/plugin-lighthouse';
 
-import { ErrorDisplayForwarder } from './components/ErrorDisplay/ErrorDisplay';
+import { techRadarApiRef, TechRadar } from '@backstage/plugin-tech-radar';
 
 const builder = ApiRegistry.builder();
 
-export const errorDialogForwarder = new ErrorDisplayForwarder();
+export const alertApiForwarder = new AlertApiForwarder();
+builder.add(alertApiRef, alertApiForwarder);
 
-builder.add(errorApiRef, errorDialogForwarder);
+export const errorApiForwarder = new ErrorApiForwarder(alertApiForwarder);
+builder.add(errorApiRef, errorApiForwarder);
 
 builder.add(featureFlagsApiRef, new FeatureFlags());
 
 builder.add(lighthouseApiRef, new LighthouseRestApi('http://localhost:3003'));
+
+builder.add(
+  techRadarApiRef,
+  new TechRadar({
+    width: 1500,
+    height: 800,
+  }),
+);
 
 export default builder.build() as ApiHolder;

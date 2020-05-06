@@ -15,19 +15,22 @@
  */
 
 import React, { FC } from 'react';
-import { Typography, withStyles, makeStyles } from '@material-ui/core';
+import { Typography, makeStyles } from '@material-ui/core';
 import { BackstageTheme } from '@backstage/theme';
 import ErrorOutline from '@material-ui/icons/ErrorOutline';
 
-const errorOutlineStyles = theme => ({
+const useErrorOutlineStyles = makeStyles<BackstageTheme>((theme) => ({
   root: {
     marginRight: theme.spacing(1),
     fill: theme.palette.warningText,
   },
-});
-const ErrorOutlineStyled = withStyles(errorOutlineStyles)(ErrorOutline);
+}));
+const ErrorOutlineStyled = () => {
+  const classes = useErrorOutlineStyles();
+  return <ErrorOutline classes={classes} />;
+};
 
-const useStyles = makeStyles<BackstageTheme>(theme => ({
+const useStyles = makeStyles<BackstageTheme>((theme) => ({
   message: {
     display: 'flex',
     flexDirection: 'column',
@@ -59,7 +62,7 @@ type Props = {
   title?: string;
 };
 
-const WarningPanel: FC<Props> = props => {
+const WarningPanel: FC<Props> = (props) => {
   const classes = useStyles(props);
   const { title, message, children } = props;
   return (
@@ -71,7 +74,9 @@ const WarningPanel: FC<Props> = props => {
         </Typography>
       </div>
       {message && (
-        <Typography className={classes.messageText}>{message}</Typography>
+        <Typography className={classes.messageText} variant="body2">
+          {message}
+        </Typography>
       )}
       {children}
     </div>

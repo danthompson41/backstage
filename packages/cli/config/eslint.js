@@ -51,6 +51,8 @@ module.exports = {
         bundledDependencies: true,
       },
     ],
+    'no-unused-expressions': 'off',
+    '@typescript-eslint/no-unused-expressions': 'error',
     '@typescript-eslint/no-unused-vars': [
       'warn',
       { vars: 'all', args: 'after-used', ignoreRestSiblings: true },
@@ -65,7 +67,7 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.test.*', '**/src/setupTests.*'],
+      files: ['*.test.*', 'src/setupTests.*', 'dev/**'],
       rules: {
         // Tests are allowed to import dev dependencies
         'import/no-extraneous-dependencies': [
